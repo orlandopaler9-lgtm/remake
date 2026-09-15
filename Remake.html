@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appliance Voltage Monitoring System</title>
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+
+            --status-normal: #16a34a;
+            --status-normal-bg: #dcfce7;
+            --status-warning: #d97706;
+            --status-warning-bg: #fef3c7;
+            --status-danger: #dc2626;
+            --status-danger-bg: #fee2e2;
+
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
+        header {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+        }
+
+        header h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        header p {
+            color: #e0f2fe;
+            font-size: 0.95rem;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1050px;
+            margin: 2rem auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Dashboard Metrics */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.25rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-card h3 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .stat-card.normal h3 { color: var(--status-normal); }
+        .stat-card.warning h3 { color: var(--status-warning); }
+        .stat-card.danger h3 { color: var(--status-danger); }
+
+        /* General Card Layout */
+        .card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid #e2e8f0;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Form Controls */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+        }
+
+        label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        input {
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.65rem 1.25rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: background 0.2s ease;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-danger {
+            background: var(--status-danger-bg);
+            color: var(--status-danger);
+            border: 1px solid #fca5a5;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.825rem;
+        }
+
+        .btn-danger:hover {
+            background: var(--status-danger);
+            color: white;
+        }
+
+        .btn-clear {
+            background: #f1f5f9;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            padding: 0.4rem 0.8rem;
+        }
+
+        .btn-clear:hover {
+            background: #e2e8f0;
+            color: var(--text-main);
+        }
+
+        /* Table Styling */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 0.875rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f8fafc;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Status Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.625rem;
+            border-radius: 50px;
+            font-size: 0.775rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .badge-normal {
+            background-color: var(--status-normal-bg);
+            color: var(--status-normal);
+        }
+
+        .badge-warning {
+            background-color: var(--status-warning-bg);
+            color: var(--status-warning);
+        }
+
+        .badge-danger {
+            background-color: var(--status-danger-bg);
+            color: var(--status-danger);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            color: var(--text-muted);
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>⚡ Appliance Voltage Monitoring</h1>
+    <p>School Electrical Safety & Diagnostics System</p>
+</header>
+
+<div class="container">
+
+    <!-- Dashboard Metrics -->
+    <div class="dashboard">
+        <div class="stat-card">
+            <h3 id="totalAppliances">0</h3>
+            <p>Total Registered</p>
+        </div>
+        <div class="stat-card normal">
+            <h3 id="normalCount">0</h3>
+            <p>Normal (210V - 230V)</p>
+        </div>
+        <div class="stat-card warning">
+            <h3 id="warningCount">0</h3>
+            <p>Warning (200-209V / 231-240V)</p>
+        </div>
+        <div class="stat-card danger">
+            <h3 id="dangerCount">0</h3>
+            <p>Action Required (<200V / >240V)</p>
+        </div>
+    </div>
+
+    <!-- Input Form -->
+    <div class="card">
+        <h2>➕ Add Voltage Reading</h2>
+        <form id="voltageForm" style="margin-top: 1rem;">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="applianceName">Appliance Name</label>
+                    <input type="text" id="applianceName" placeholder="e.g., Electric Fan" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="location">Room / Location</label>
+                    <input type="text" id="location" placeholder="e.g., Computer Lab 1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="voltage">Voltage Reading (V)</label>
+                    <input type="number" id="voltage" min="0" max="500" step="0.1" placeholder="e.g., 220" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn">Add Reading</button>
+        </form>
+    </div>
+
+    <!-- Monitoring Table -->
+    <div class="card">
+        <div class="card-header">
+            <h2>📊 Monitoring Records</h2>
+            <button class="btn btn-clear" onclick="clearAllReadings()">Clear All</button>
+        </div>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Appliance</th>
+                        <th>Location</th>
+                        <th>Voltage</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="records">
+                    <!-- Dynamic Rows Insertion -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<footer>
+    <p>School Electrical Voltage Monitoring System &copy; 2026</p>
+</footer>
+
+<script>
+    // Load stored appliances or initialize empty array
+    let appliances = JSON.parse(localStorage.getItem("applianceData")) || [];
+
+    // Initialize application on load
+    document.addEventListener("DOMContentLoaded", () => {
+        displayRecords();
+        
+        // Form Submit Handler
+        document.getElementById("voltageForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            addReading();
+        });
+    });
+
+    function addReading() {
+        const nameInput = document.getElementById("applianceName");
+        const locationInput = document.getElementById("location");
+        const voltageInput = document.getElementById("voltage");
+
+        const name = nameInput.value.trim();
+        const location = locationInput.value.trim();
+        const voltage = parseFloat(voltageInput.value);
+
+        if (!name || !location || isNaN(voltage)) {
+            alert("Please fill out all fields with valid information.");
+            return;
+        }
+
+        // Determine Status based on Voltage Thresholds
+        let status, badgeClass;
+        if (voltage >= 210 && voltage <= 230) {
+            status = "Normal";
+            badgeClass = "badge-normal";
+        } else if ((voltage >= 200 && voltage < 210) || (voltage > 230 && voltage <= 240)) {
+            status = "Warning";
+            badgeClass = "badge-warning";
+        } else {
+            status = "Check";
+            badgeClass = "badge-danger";
+        }
+
+        const appliance = {
+            id: Date.now(),
+            name,
+            location,
+            voltage,
+            status,
+            badgeClass
+        };
+
+        appliances.push(appliance);
+        saveAndRefresh();
+
+        // Reset form inputs
+        nameInput.value = "";
+        locationInput.value = "";
+        voltageInput.value = "";
+        nameInput.focus();
+    }
+
+    function displayRecords() {
+        const tableBody = document.getElementById("records");
+        tableBody.innerHTML = "";
+
+        if (appliances.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="empty-state">
+                        No voltage readings recorded yet. Add one above!
+                    </td>
+                </tr>`;
+            updateDashboard();
+            return;
+        }
+
+        appliances.forEach((item, index) => {
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td style="font-weight: 600;">${escapeHtml(item.name)}</td>
+                <td>${escapeHtml(item.location)}</td>
+                <td><strong>${item.voltage}</strong> V</td>
+                <td><span class="badge ${item.badgeClass}">${item.status}</span></td>
+                <td style="text-align: right;">
+                    <button class="btn btn-danger" onclick="deleteReading(${index})">
+                        Delete
+                    </button>
+                </td>
+            `;
+
+            tableBody.appendChild(row);
+        });
+
+        updateDashboard();
+    }
+
+    function deleteReading(index) {
+        if (confirm("Are you sure you want to delete this reading?")) {
+            appliances.splice(index, 1);
+            saveAndRefresh();
+        }
+    }
+
+    function clearAllReadings() {
+        if (appliances.length === 0) return;
+        if (confirm("Are you sure you want to clear all monitoring records?")) {
+            appliances = [];
+            saveAndRefresh();
+        }
+    }
+
+    function updateDashboard() {
+        document.getElementById("totalAppliances").textContent = appliances.length;
+        
+        const normalCount = appliances.filter(item => item.status === "Normal").length;
+        const warningCount = appliances.filter(item => item.status === "Warning").length;
+        const dangerCount = appliances.filter(item => item.status === "Check").length;
+
+        document.getElementById("normalCount").textContent = normalCount;
+        document.getElementById("warningCount").textContent = warningCount;
+        document.getElementById("dangerCount").textContent = dangerCount;
+    }
+
+    function saveAndRefresh() {
+        localStorage.setItem("applianceData", JSON.stringify(appliances));
+        displayRecords();
+    }
+
+    // XSS protection helper
+    function escapeHtml(str) {
+        return str.replace(/[&<>"']/g, function(m) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[m];
+        });
+    }
+</script>
+
+</body>
+</html>
